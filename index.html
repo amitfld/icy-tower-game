@@ -16,9 +16,9 @@
         const ctx = canvas.getContext('2d');
 
         // Game settings
-        const gravity = 0.5;
-        const friction = 0.8;
-        const baseJump = -10; // Base jump velocity
+        const gravity = 0.5; // gravity pulls the player down
+        const friction = 0.8; // friction slows horizontal velocity over time
+        const baseJump = -10; // Base jump velocity - upward force when jumping
 
         // Player
         let player = {
@@ -56,18 +56,20 @@
             keys[e.keyCode] = false;
         });
 
+        // 🎯 Score 
+        let score = 0;
+        let lastPlatformY = canvas.height; // Start from bottom
+
+        function drawScore() {
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText('Score: ' + score, 10, 30);
+        }
+
         function updateGame() {
             // Check key inputs
-            if (keys[39]) { // right arrow
-                if (player.velX < player.speed) {
-                    player.velX++;
-                }
-            }         
-            if (keys[37]) { // left arrow
-                if (player.velX > -player.speed) {
-                    player.velX--;
-                }
-            }
+            if (keys[39]) {if (player.velX < player.speed) {player.velX++;}}         
+            if (keys[37]) {if (player.velX > -player.speed) {player.velX--;}}
 
             player.velX *= friction;
             player.velY += gravity;
@@ -75,26 +77,28 @@
             player.x += player.velX;
             player.y += player.velY;
 
-            // Screen scroll
+            // Scroll the screen when player reaches top 1/4 of canvas
             if (player.y < canvas.height / 4) {
-                player.y += Math.abs(player.velY);
+                const offset = canvas.height / 4 - player.y;
+                player.y = canvas.height / 4;
+
                 platforms.forEach(platform => {
-                    platform.y += Math.abs(player.velY);
+                    platform.y += offset;
                     if (platform.y > canvas.height) {
                         platform.y = 0;
                         platform.x = Math.random() * (canvas.width - platform.width);
                     }
                 });
+
+                // Move lastPlatformY down to keep scoring consistent
+                lastPlatformY += offset;
             }
 
             // Collision with the canvas edges
-            if (player.x >= canvas.width - player.width) {
-                player.x = canvas.width - player.width;
-            } else if (player.x <= 0) {
-                player.x = 0;
-            }
+            if (player.x >= canvas.width - player.width) player.x = canvas.width - player.width;
+            if (player.x <= 0) player.x = 0;
 
-            if(player.y >= canvas.height - player.height){
+            if (player.y >= canvas.height - player.height) {
                 player.y = canvas.height - player.height;
                 player.jumping = false;
                 player.velY = 0;
@@ -112,6 +116,15 @@
                     player.jumping = false;
                     player.velY = 0;
                     player.y = platform.y - player.height;
+
+                    // ✅ Scoring logic: based on how many platforms were jumped
+                    if (platform.y < lastPlatformY) {
+                        const platformsJumped = Math.floor((lastPlatformY - platform.y) / 100);
+                        if (platformsJumped > 0) {
+                            score += platformsJumped * 30;
+                            lastPlatformY = platform.y;
+                        }
+                    }
                 }
             });
 
@@ -127,6 +140,9 @@
                 ctx.fillStyle = 'black';
                 ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
             });
+
+            // 🧾 Draw score
+            drawScore();
 
             requestAnimationFrame(updateGame);
         }
