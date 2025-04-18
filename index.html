@@ -34,8 +34,10 @@
 
         // Platforms
         let platforms = [];
+        let totalPlatformsCreated = 10; // we initially create 10 platforms
         for (let i = 0; i < 10; i++) {
             platforms.push({
+                number: i + 1, // platform 1, 2, 3, ...
                 x: Math.random() * (canvas.width - 50),
                 y: canvas.height - (100 * i) - 50,
                 width: 100,
@@ -44,6 +46,7 @@
                 falling: false
             });
         }
+
 
         // Key Listener
         let keys = [];
@@ -65,8 +68,11 @@
         function drawScore() {
             ctx.fillStyle = 'black';
             ctx.font = '20px Arial';
-            ctx.fillText('Score: ' + score, 10, 30);
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top'; // ensures text is fully visible from the top
+            ctx.fillText('Score: ' + score, 10, 10);
         }
+
 
         function updateGame() {
             // Check key inputs
@@ -87,13 +93,16 @@
                 platforms.forEach(platform => {
                     platform.y += offset;
                     if (platform.y > canvas.height) {
-                        platform.y = 0;
+                        // Find highest current platform
+                        let highestY = Math.min(...platforms.map(p => p.y));
+
+                        platform.y = highestY - 100; // 100px above the highest platform
                         platform.x = Math.random() * (canvas.width - platform.width);
                         platform.standingTime = 0;
                         platform.falling = false;
+                        platform.number = ++totalPlatformsCreated;
                     }
                 });
-
 
                 // Move lastPlatformY down to keep scoring consistent
                 lastPlatformY += offset;
@@ -166,7 +175,14 @@
             platforms.forEach(platform => {
                 ctx.fillStyle = 'black';
                 ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-            });
+
+                if (platform.number % 10 === 0) {
+                    ctx.fillStyle = 'white';
+                    ctx.font = '14px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(platform.number, platform.x + platform.width / 2, platform.y - 5);
+                }
+            })  ;
 
             // 🧾 Draw score
             drawScore();
