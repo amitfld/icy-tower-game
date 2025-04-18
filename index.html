@@ -21,6 +21,7 @@
         const baseJump = -10; // Base jump velocity - upward force when jumping
 
         let gameOver = false;
+        let hasLeftStartZone = false;
 
         // Player
         let player = {
@@ -120,6 +121,11 @@
             player.x += player.velX;
             player.y += player.velY;
 
+            if (player.y < canvas.height - 150) {
+                hasLeftStartZone = true;
+            }
+
+
             // Scroll the screen when player reaches top 1/4 of canvas
             if (player.y < canvas.height / 4) {
                 const offset = canvas.height / 4 - player.y;
@@ -155,6 +161,9 @@
             if (player.x <= 0) player.x = 0;
 
             if (player.y >= canvas.height - player.height) {
+                if (hasLeftStartZone) {
+                    gameOver = true;
+                }
                 player.y = canvas.height - player.height;
                 player.jumping = false;
                 player.velY = 0;
