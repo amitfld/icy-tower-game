@@ -10,7 +10,51 @@
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="400" height="600"></canvas>
+    <!-- <canvas id="gameCanvas" width="400" height="600"></canvas> -->
+    <div id="gameContainer" style="position: relative; width: 400px; margin: auto;">
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+    
+        <!-- Game Over Screen -->
+        <div id="gameOverScreen" style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.75);
+            display: none;
+            color: white;
+            font-family: Arial, sans-serif;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10;
+            display: flex;
+        ">
+            <h1 style="margin-bottom: 10px; font-size: 36px;">GAME OVER</h1>
+            <button onclick="restartGame()" style="
+                padding: 10px 20px;
+                font-size: 18px;
+                margin-bottom: 20px;
+                background-color: #fff;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                transition: background 0.3s;
+            " onmouseover="this.style.background='#eee'" onmouseout="this.style.background='#fff'">
+                Play Again
+            </button>
+            <h2 style="margin-bottom: 10px;">Top Scores</h2>
+            <ol id="leaderboard" style="padding: 0; list-style: none; font-size: 16px;"></ol>
+        </div>
+    </div>
+    
+    <div id="gameOverScreen" style="display:none; text-align:center; margin-top: 20px;">
+        <h1 style="font-family: Arial;">GAME OVER</h1>
+        <button onclick="restartGame()" style="font-size: 20px; padding: 10px 20px;">Play Again</button>
+        <h2>Top Scores</h2>
+        <ol id="leaderboard" style="font-family: Arial; font-size: 18px;"></ol>
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -296,19 +340,66 @@
 
             // 🧾 Draw score
             drawScore();
-
+            // 🏁 Game Over
             if (gameOver) {
-                ctx.fillStyle = 'black';
-                ctx.font = '40px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2);
+                showGameOver();
+                return;
             }
-
-
             requestAnimationFrame(updateGame);
         }
 
         updateGame();
+        function showGameOver() {
+            // Store score in localStorage
+            let scores = JSON.parse(localStorage.getItem('icyTowerScores')) || [];
+            scores.push(score);
+            scores.sort((a, b) => b - a); // Descending order
+            scores = scores.slice(0, 10); // Keep top 10
+            localStorage.setItem('icyTowerScores', JSON.stringify(scores));
+
+            // Display leaderboard
+            const leaderboard = document.getElementById('leaderboard');
+            leaderboard.innerHTML = '';
+            scores.forEach((s, i) => {
+                const li = document.createElement('li');
+                li.textContent = `#${i + 1}: ${s}`;
+                leaderboard.appendChild(li);
+            });
+
+            // Show game over screen
+            document.getElementById('gameOverScreen').style.display = 'flex';
+        }
+    function restartGame() {
+        // Reset game state
+        gameOver = false;
+        hasLeftStartZone = false;
+        score = 0;
+        lastPlatformY = canvas.height;
+        totalPlatformsCreated = 10;
+        totalType1Enemies = 0;
+        totalType2Enemies = 0;
+
+        // Reset player
+        player.x = canvas.width / 2;
+        player.y = canvas.height - 150;
+        player.velX = 0;
+        player.velY = 0;
+        player.jumping = false;
+
+        // Recreate platforms
+        platforms = [];
+        for (let i = 0; i < 10; i++) {
+            platforms.push(createPlatform(i));
+        }
+
+        // Hide game over screen
+        document.getElementById('gameOverScreen').style.display = 'none';
+
+        // Restart game loop
+        updateGame();
+    }
+
+
     </script>
 </body>
 </html>
