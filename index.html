@@ -93,7 +93,9 @@
         // Platforms
         let platforms = [];
         function createPlatform(i) {
-            const platformWidth = 100;
+            const platformWidth = Math.random() < 0.25
+                ? 120 + Math.random() * 80  // 25% chance → 120–180px
+                : 100;
             const platform = {
                 number: i + 1,
                 x: Math.random() * (canvas.width - platformWidth),
