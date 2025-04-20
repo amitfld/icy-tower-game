@@ -198,8 +198,8 @@
                 hasSpecial = true;
             }
 
-            // 5% chance to add a World Cup trophy
-            if (Math.random() < 0.05 && !hasSpecial) {
+            // 8% chance to add a World Cup trophy
+            if (Math.random() < 0.08 && !hasSpecial) {
                 platform.trophy = {
                     offsetX: platform.width / 2 - 10,
                     offsetY: -25,
@@ -447,12 +447,12 @@
                     player.y + player.height > enemyY;
 
                     if (enemyCollides) {
-                        if (enemy.type === 'Type1' && !starActive) {
+                        if (enemy.type === 'Type1' && !starActive && !flyingMode) {
                             const hitSound = document.getElementById('hitSound1');
                             hitSound.currentTime = 0;
                             hitSound.play();
                         }
-                        if (!starActive) {
+                        if (!starActive && !flyingMode) {
                             gameOver = true;
                         }
                     }
