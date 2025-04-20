@@ -14,6 +14,7 @@
     <audio id="bgMusic" src="UEFA_Champions_League_Anthem.mp3" loop></audio>    
     <audio id="hitSound1" src="RONALDO_SIÙUUUUUU.mp3"></audio>
     <audio id="flySound" src="Muchachos.mp3" loop></audio>
+    <audio id="varSound" src="var_sound.mp3"></audio>
     <div id="gameContainer" style="
     position: relative; 
     width: 500px; 
@@ -140,6 +141,15 @@
 
             const varOverlay = document.getElementById('varOverlay');
             const varResultText = document.getElementById('varResultText');
+            const bgMusic = document.getElementById('bgMusic'); 
+            const varSound = document.getElementById('varSound');
+
+            // ⏹️ Pause background music
+            bgMusic.pause();
+
+            // 🔊 Play VAR sound once
+            varSound.currentTime = 0;
+            varSound.play();
 
             varResultText.innerText = ''; // Clear any previous result
             varOverlay.style.display = 'flex';
@@ -149,6 +159,12 @@
                 const favorPlayer = Math.random() < 0.5;
 
                 varResultText.innerText = favorPlayer ? "✅ SURVIVED" : "❌ GAME OVER";
+
+                // 🟢 Resume background music if player survives
+                if (favorPlayer) {
+                    bgMusic.currentTime = 0;
+                    bgMusic.play();
+                }
 
                 setTimeout(() => {
                     varOverlay.style.display = 'none';
@@ -208,7 +224,7 @@
             let hasSpecial = false;
 
             // 5% chance to add enemy
-            if (Math.random() < 0.05 && !hasSpecial) {
+            if (Math.random() < 0.4 && !hasSpecial) {
                 let type;
                 if (totalType1Enemies < totalType2Enemies) {
                     type = 'Type1';
