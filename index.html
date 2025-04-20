@@ -9,14 +9,15 @@
         #gameCanvas { background-color: transparent; }
     </style>
 </head>
-<audio id="bgMusic" src="UEFA_Champions_League_Anthem.mp3" loop></audio>
-<audio id="hitSound1" src="RONALDO_SIÙUUUUUU.mp3"></audio>
+
 <body>
+    <audio id="bgMusic" src="UEFA_Champions_League_Anthem.mp3" loop></audio>    
+    <audio id="hitSound1" src="RONALDO_SIÙUUUUUU.mp3"></audio>
     <div id="gameContainer" style="
     position: relative; 
     width: 500px; 
     margin: auto;
-    background-image: url('camp_nou.png');
+    background-image: url('camp_nou_2.png');
     background-size: cover;
     background-position: center;
     ">
@@ -61,7 +62,7 @@
         const ctx = canvas.getContext('2d');
         // Load player image
         const playerImg = new Image();
-        playerImg.src = "messi3.png";
+        playerImg.src = "messi.png";
         
         // Load enemies image
         const enemy1Img = new Image();
@@ -81,7 +82,7 @@
         // Player
         let player = {
             x: canvas.width / 2,
-            y: canvas.height - 150,
+            y: canvas.height - 5 - 55, // 5 pixels from the bottom
             width: 45,
             height: 55,
             speed: 5,
@@ -93,22 +94,30 @@
         // Platforms
         let platforms = [];
         function createPlatform(i) {
-            const platformWidth = Math.random() < 0.25
-                ? 120 + Math.random() * 80  // 25% chance → 120–180px
+            const platformWidth = Math.random() < 0.33
+                ? 120 + Math.random() * 80  // 25% chance → 120–200px
                 : 100;
+
             const platform = {
                 number: i + 1,
                 x: Math.random() * (canvas.width - platformWidth),
-                y: canvas.height - (100 * i) - 50,
+                y: canvas.height - 150 - (i * 90),
                 width: platformWidth,
                 height: 10,
                 standingTime: 0,
-                falling: false
+                falling: false,
+                moving: false
             };
+
+            // 6% chance to make it vertically moving
+            if (Math.random() < 0.06) {
+                platform.moving = true;
+                platform.originalY = platform.y;
+                platform.direction = 1;
+            }
 
             // 5% chance to add enemy
             if (Math.random() < 0.05) {
-                // ✅ Balanced enemy type logic 
                 let type;
                 if (totalType1Enemies < totalType2Enemies) {
                     type = 'Type1';
@@ -121,17 +130,19 @@
                     if (type === 'Type1') totalType1Enemies++;
                     else totalType2Enemies++;
                 }
+
                 platform.enemy = {
                     type: type,
                     x: platform.x + 10,
-                    width: (type === 'Type1') ? 35 : 35,
-                    height: (type === 'Type1') ? 52.5 : 52.5,
-                    dir: 1 // only used for Type2
+                    width: 35,
+                    height: 52.5,
+                    dir: 1
                 };
             }
 
             return platform;
         }
+
 
         let totalPlatformsCreated = 10; // we initially create 10 platforms
         let totalType1Enemies = 0;
@@ -190,6 +201,14 @@
 
                 platforms.forEach(platform => {
                     platform.y += offset;
+                    
+                    // -------- ADD THIS --------
+                    // If the platform is a moving one, shift its reference point too!
+                    if (platform.moving) {
+                        platform.originalY += offset;
+                    }
+                    // --------------------------
+
                     if (platform.y > canvas.height) {
                         const highestY = Math.min(...platforms.map(p => p.y));
                         
@@ -206,6 +225,16 @@
                         platform.falling = false;
                         platform.number = newPlatform.number;
                         platform.enemy = newPlatform.enemy;
+                        // new section =================
+                        // ✅ Properly reset moving platform behavior
+                        if (newPlatform.moving) {
+                            platform.moving = true;
+                            platform.direction = newPlatform.direction;
+                            platform.originalY = highestY - 100;
+                        } else {
+                            platform.moving = false;
+                        }
+                        //==============
                     }
                 });
 
@@ -241,6 +270,9 @@
                     player.jumping = false;
                     player.velY = 0;
                     player.y = platform.y - player.height;
+                    if (platform.moving) {
+                        player.y += platform.direction * 0.8;
+                    }
                     onAnyPlatform = true;
 
                     // ✅ Scoring logic
@@ -278,6 +310,14 @@
                         enemy.x += enemy.dir * 2; // nudge back to prevent sticking
                     }
                 }
+                // Move vertically if it's a moving platform
+                if (platform.moving) {
+                    platform.y += platform.direction * 0.8;
+                    if (platform.y > platform.originalY + 50 || platform.y < platform.originalY - 50) {
+                        platform.direction *= -1;
+                    }
+                }
+
 
             });
 
