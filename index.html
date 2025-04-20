@@ -208,7 +208,7 @@
             let hasSpecial = false;
 
             // 5% chance to add enemy
-            if (Math.random() < 0.5 && !hasSpecial) {
+            if (Math.random() < 0.05 && !hasSpecial) {
                 let type;
                 if (totalType1Enemies < totalType2Enemies) {
                     type = 'Type1';
@@ -709,6 +709,12 @@
             totalPlatformsCreated = 10;
             totalType1Enemies = 0;
             totalType2Enemies = 0;
+
+            // Reset trophies and star powerup
+            collectedTrophies = 0;
+            starActive = false;
+            starTimer = 0;
+            auraStartTime = 0;
 
             // Reset player
             player.x = canvas.width / 2;
