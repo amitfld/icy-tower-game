@@ -15,6 +15,7 @@
     <audio id="hitSound1" src="RONALDO_SIÙUUUUUU.mp3"></audio>
     <audio id="flySound" src="Muchachos.mp3" loop></audio>
     <audio id="varSound" src="var_sound.mp3"></audio>
+
     <div id="gameContainer" style="
     position: relative; 
     width: 500px; 
@@ -43,7 +44,23 @@
 
 
 
-        <canvas id="gameCanvas" width="500" height="700"></canvas>
+        <canvas id="gameCanvas" width="400" height="600"></canvas>
+
+        <button id="muteButton" style="
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            z-index: 30;
+            padding: 5px 10px;
+            background-color: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        ">
+            🔊 Mute
+        </button>
+        
     
         <!-- Game Over Screen -->
         <div id="gameOverScreen" style="
@@ -80,6 +97,22 @@
     </div>
     
     <script>
+        let isMuted = false;
+        const bgMusic = document.getElementById('bgMusic');
+        const flySound = document.getElementById('flySound');
+        const hitSound = document.getElementById('hitSound1');
+        const varSound = document.getElementById('varSound');
+
+        function updateMuteState() {
+            const allSounds = [bgMusic, flySound, hitSound, varSound].filter(Boolean);
+            allSounds.forEach(sound => {
+                sound.muted = isMuted;
+            });
+
+            const btn = document.getElementById('muteButton');
+            btn.textContent = isMuted ? '🔇 Unmute' : '🔊 Mute';
+        }
+
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         // Load player image
@@ -303,12 +336,17 @@
         // Key Listener
         let keys = [];
         window.addEventListener('keydown', function(e) {
+            if (e.target.tagName === 'BUTTON') return; // Don't trigger if focused on button
+
             keys[e.keyCode] = true;
-            if (e.keyCode == 32 && !player.jumping) { // Space key for jump
+            if (e.keyCode === 32 && !player.jumping) { // Space key for jump
+                e.preventDefault(); // Prevent scrolling
                 player.jumping = true;
-                player.velY = baseJump - Math.abs(player.velX); // Higher jump if running faster
+                player.velY = baseJump - Math.abs(player.velX);
             }
         });
+
+
         window.addEventListener('keyup', function(e) {
             keys[e.keyCode] = false;
         });
@@ -733,6 +771,7 @@
         updateGame();
         document.getElementById('bgMusic').play();
         document.getElementById('varOverlay').style.display = 'none'; // Hide overlay on load
+        updateMuteState();
 
         function showGameOver() {
             // Reset trophies
@@ -798,7 +837,10 @@
             document.getElementById('bgMusic').play();
         }
 
-
+        document.getElementById('muteButton').addEventListener('click', () => {
+            isMuted = !isMuted;
+            updateMuteState();
+        });
     </script>
 </body>
 </html>
