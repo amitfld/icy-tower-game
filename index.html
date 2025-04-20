@@ -76,6 +76,19 @@
         const friction = 0.8; // friction slows horizontal velocity over time
         const baseJump = -10; // Base jump velocity - upward force when jumping
 
+        // Star powerup
+        let starActive = false;
+        let starTimer = 0;
+        const STAR_DURATION = 7000; // in milliseconds
+        const goldenBootImg = new Image();
+        goldenBootImg.src = "golden_boot.png";
+
+        // Football image for shield
+        const footballImg = new Image();
+        footballImg.src = "football.png";
+
+        let auraStartTime = 0; // When the aura starts
+
         let gameOver = false;
         let hasLeftStartZone = false;
 
@@ -140,6 +153,18 @@
                 };
             }
 
+            // 8% chance to add a star powerup (European Golden Boot)
+            if (Math.random() < 0.5) {
+                platform.star = {
+                    offsetX: platform.width / 2 - 10,
+                    offsetY: -20,
+                    width: 20,
+                    height: 20,
+                    collected: false
+                };
+
+            }
+
             return platform;
         }
 
@@ -177,7 +202,6 @@
             ctx.fillText('Score: ' + score, 10, 10);
         }
 
-
         function updateGame() {
             // Check key inputs
             if (keys[39]) {if (player.velX < player.speed) {player.velX++;}}         
@@ -201,13 +225,11 @@
 
                 platforms.forEach(platform => {
                     platform.y += offset;
-                    
-                    // -------- ADD THIS --------
+
                     // If the platform is a moving one, shift its reference point too!
                     if (platform.moving) {
                         platform.originalY += offset;
                     }
-                    // --------------------------
 
                     if (platform.y > canvas.height) {
                         const highestY = Math.min(...platforms.map(p => p.y));
@@ -225,7 +247,6 @@
                         platform.falling = false;
                         platform.number = newPlatform.number;
                         platform.enemy = newPlatform.enemy;
-                        // new section =================
                         // ✅ Properly reset moving platform behavior
                         if (newPlatform.moving) {
                             platform.moving = true;
@@ -234,7 +255,6 @@
                         } else {
                             platform.moving = false;
                         }
-                        //==============
                     }
                 });
 
@@ -347,17 +367,31 @@
                             hitSound.currentTime = 0;
                             hitSound.play();
                         }
-                        gameOver = true;
+                        if (!starActive) {
+                            gameOver = true;
+                        }
                     }
             });
-
 
             // Clear canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Draw player
-            // Draw player as image
             ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+
+            if (starActive) {
+                const elapsed = Math.floor((Date.now() - auraStartTime) / 1000);
+                const ballsToShow = Math.max(0, 7 - elapsed);
+
+                for (let i = 0; i < ballsToShow; i++) {
+                    const angle = (2 * Math.PI / 7) * i;
+                    const radius = 30;
+                    const ballX = player.x + player.width / 2 + Math.cos(angle) * radius - 7;
+                    const ballY = player.y + player.height / 2 + Math.sin(angle) * radius - 7;
+                    ctx.drawImage(footballImg, ballX, ballY, 14, 14);
+                }
+            }
+
 
             // Draw platforms
             platforms.forEach(platform => {
@@ -388,8 +422,7 @@
                         }
                         enemyX = enemy.x;
                     }
-
-                    // Draw
+                    // Draw enemies
                     if (enemy.type === 'Type1') {
                         ctx.drawImage(enemy1Img, enemyX, platform.y - enemy.height, enemy.width, enemy.height);
                     } else {
@@ -398,14 +431,36 @@
                     }
                 }
 
+                // Draw star powerup as image
+                if (platform.star) {
+                    const starX = platform.x + platform.star.offsetX;
+                    const starY = platform.y + platform.star.offsetY;
+                    ctx.drawImage(goldenBootImg, starX, starY, platform.star.width, platform.star.height);
+
+                    // Check if player collects the star
+                    const collected = player.x < starX + platform.star.width &&
+                                    player.x + player.width > starX &&
+                                    player.y < starY + platform.star.height &&
+                                    player.y + player.height > starY;
+                    if (collected) {
+                        starActive = true;
+                        starTimer = Date.now();
+                        auraStartTime = Date.now(); // Start the aura clock
+                        platform.star = null; // remove the star
+                    }
+                }
             });
 
             // 🧾 Draw score
             drawScore();
+            
             // 🏁 Game Over
             if (gameOver) {
                 showGameOver();
                 return;
+            }
+            if (starActive && Date.now() - starTimer > STAR_DURATION) {
+                starActive = false;
             }
             requestAnimationFrame(updateGame);
         }
