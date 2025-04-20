@@ -13,11 +13,12 @@
 <body>
     <audio id="bgMusic" src="UEFA_Champions_League_Anthem.mp3" loop></audio>    
     <audio id="hitSound1" src="RONALDO_SIÙUUUUUU.mp3"></audio>
+    <audio id="flySound" src="Muchachos.mp3" loop></audio>
     <div id="gameContainer" style="
     position: relative; 
     width: 500px; 
     margin: auto;
-    background-image: url('camp_nou_2.png');
+    background-image: url('camp_nou.png');
     background-size: cover;
     background-position: center;
     ">
@@ -62,7 +63,7 @@
         const ctx = canvas.getContext('2d');
         // Load player image
         const playerImg = new Image();
-        playerImg.src = "messi.png";
+        playerImg.src = "messi_barca.png";
         
         // Load enemies image
         const enemy1Img = new Image();
@@ -90,6 +91,18 @@
         // Load springboard image
         const springImg = new Image();
         springImg.src = "springboard.png";
+
+        // World Cup Trophy Image
+        const trophyImg = new Image();
+        trophyImg.src = "world_cup.png";
+
+        // Flying mode avatar
+        const flyingAvatarImg = new Image();
+        flyingAvatarImg.src = "messi_argentina.png"; // or any flying version of the player
+
+        let collectedTrophies = 0;
+        let flyingMode = false;
+        let flyingPlatformsLeft = 0;
 
         let auraStartTime = 0; // When the aura starts
 
@@ -185,6 +198,18 @@
                 hasSpecial = true;
             }
 
+            // 5% chance to add a World Cup trophy
+            if (Math.random() < 0.05 && !hasSpecial) {
+                platform.trophy = {
+                    offsetX: platform.width / 2 - 10,
+                    offsetY: -25,
+                    width: 25,
+                    height: 30
+                };
+                hasSpecial = true;
+            }
+
+
             return platform;
         }
 
@@ -227,11 +252,20 @@
             if (keys[39]) {if (player.velX < player.speed) {player.velX++;}}         
             if (keys[37]) {if (player.velX > -player.speed) {player.velX--;}}
 
-            player.velX *= friction;
-            player.velY += gravity;
+            // player.velX *= friction;
+            // player.velY += gravity;
 
+            // player.x += player.velX;
+            // player.y += player.velY;
+
+            player.velX *= friction;
             player.x += player.velX;
-            player.y += player.velY;
+            if (!flyingMode) {
+                player.velY += gravity;
+                player.y += player.velY;
+            }
+
+
 
             if (player.y < canvas.height - 150) {
                 hasLeftStartZone = true;
@@ -277,6 +311,9 @@
                         // 🔹 Spring
                         platform.spring = newPlatform.spring || null;
 
+                        // 🏆 World Cup trophy
+                        platform.trophy = newPlatform.trophy || null;
+
 
                         platform.moving = newPlatform.moving || false;
                         if (platform.moving) {
@@ -289,6 +326,25 @@
                 // Move lastPlatformY down to keep scoring consistent
                 lastPlatformY += offset;
             }
+
+            // Flying mode logic
+            if (flyingMode) {
+                const flyingDuration = 3000; // 3 seconds in milliseconds
+                const elapsed = Date.now() - flyingStartTime;
+
+                if (elapsed >= flyingDuration) {
+                    flyingMode = false;
+                    playerImg.src = "messi_barca.png";
+
+                    document.getElementById('flySound').pause();         // 🔇 Stop flying music
+                    document.getElementById('bgMusic').currentTime = 0;
+                    document.getElementById('bgMusic').play();           // ▶️ Resume background music
+                } else {
+                    player.y -= 10; // flying upward speed
+                    score += 2;     // score slowly while flying
+                }
+            }
+
 
             // Collision with the canvas edges
             if (player.x >= canvas.width - player.width) player.x = canvas.width - player.width;
@@ -501,10 +557,42 @@
                     }
                 }
 
+                // Draw World Cup trophy if it exists
+                if (platform.trophy) {
+                    const trophyX = platform.x + platform.trophy.offsetX;
+                    const trophyY = platform.y + platform.trophy.offsetY;
+
+                    ctx.drawImage(trophyImg, trophyX, trophyY, platform.trophy.width, platform.trophy.height);
+
+                    const collected = player.x < trophyX + platform.trophy.width &&
+                                    player.x + player.width > trophyX &&
+                                    player.y < trophyY + platform.trophy.height &&
+                                    player.y + player.height > trophyY;
+
+                    if (collected) {
+                        collectedTrophies++;
+                        platform.trophy = null;
+
+                        if (collectedTrophies >= 3) {
+                            flyingMode = true;
+                            flyingStartTime = Date.now();  // <-- NEW
+                            playerImg.src = flyingAvatarImg.src;
+                            collectedTrophies = 0;
+                            document.getElementById('bgMusic').pause();        // 🔇 Pause regular music
+                            document.getElementById('flySound').currentTime = 0;
+                            document.getElementById('flySound').play();        // ▶️ Start flying music
+                        }
+                    }
+                }
             });
 
             // 🧾 Draw score
             drawScore();
+
+            // 🏆 Draw trophies
+            for (let i = 0; i < collectedTrophies; i++) {
+                ctx.drawImage(trophyImg, canvas.width - (i + 1) * 30 - 10, 10, 20, 30);
+            }
             
             // 🏁 Game Over
             if (gameOver) {
@@ -521,8 +609,11 @@
         document.getElementById('bgMusic').play();
 
         function showGameOver() {
+            // Reset trophies
+            collectedTrophies = 0;
             // Stop music
             document.getElementById('bgMusic').pause();
+            document.getElementById('flySound').pause();
             // Store score in localStorage
             let scores = JSON.parse(localStorage.getItem('icyTowerScores')) || [];
             scores.push(score);
