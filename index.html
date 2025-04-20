@@ -771,6 +771,20 @@
         updateGame();
         document.getElementById('bgMusic').play();
         document.getElementById('varOverlay').style.display = 'none'; // Hide overlay on load
+        // ✅ Fix autoplay issue by waiting for user interaction
+        let musicStarted = false;
+
+        function tryStartMusic() {
+            if (!musicStarted) {
+                document.getElementById('bgMusic').play();
+                musicStarted = true;
+                document.removeEventListener('keydown', tryStartMusic);
+                document.removeEventListener('click', tryStartMusic);
+            }
+        }
+
+        document.addEventListener('keydown', tryStartMusic);
+        document.addEventListener('click', tryStartMusic);
         updateMuteState();
 
         function showGameOver() {
