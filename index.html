@@ -22,6 +22,26 @@
     background-size: cover;
     background-position: center;
     ">
+
+    <div id="varOverlay" style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        z-index: 20;
+    ">
+        <img id="varImage" src="var.png" alt="VAR Checking" style="max-width: 80%; max-height: 80%;">
+        <div id="varResultText" style="margin-top: 20px; font-size: 24px; color: white;"></div>
+    </div>
+
+
+
         <canvas id="gameCanvas" width="500" height="700"></canvas>
     
         <!-- Game Over Screen -->
@@ -109,6 +129,44 @@
         let gameOver = false;
         let hasLeftStartZone = false;
 
+        let varChecking = false;
+        let varSuccess = false;
+        let varTimer = null;
+        let isGamePaused = false;
+
+        function startVARReview(onSuccess, onFail) {
+            varChecking = true;
+            isGamePaused = true;
+
+            const varOverlay = document.getElementById('varOverlay');
+            const varResultText = document.getElementById('varResultText');
+
+            varResultText.innerText = ''; // Clear any previous result
+            varOverlay.style.display = 'flex';
+
+            clearTimeout(varTimer);
+            varTimer = setTimeout(() => {
+                const favorPlayer = Math.random() < 0.5;
+
+                varResultText.innerText = favorPlayer ? "✅ SURVIVED" : "❌ GAME OVER";
+
+                setTimeout(() => {
+                    varOverlay.style.display = 'none';
+                    varChecking = false;
+                    isGamePaused = false;
+
+                    if (favorPlayer) {
+                        onSuccess();
+                    } else {
+                        onFail();
+                    }
+                }, 1500); // Show result text for 1.5 seconds
+            }, 2000); // 2-second VAR check
+        }
+
+
+
+
         // Player
         let player = {
             x: canvas.width / 2,
@@ -150,7 +208,7 @@
             let hasSpecial = false;
 
             // 5% chance to add enemy
-            if (Math.random() < 0.05 && !hasSpecial) {
+            if (Math.random() < 0.5 && !hasSpecial) {
                 let type;
                 if (totalType1Enemies < totalType2Enemies) {
                     type = 'Type1';
@@ -208,8 +266,6 @@
                 };
                 hasSpecial = true;
             }
-
-
             return platform;
         }
 
@@ -248,6 +304,10 @@
         }
 
         function updateGame() {
+            if (isGamePaused) {
+                requestAnimationFrame(updateGame);
+                return;
+            }
             // Check key inputs
             if (keys[39]) {if (player.velX < player.speed) {player.velX++;}}         
             if (keys[37]) {if (player.velX > -player.speed) {player.velX--;}}
@@ -451,9 +511,15 @@
                             const hitSound = document.getElementById('hitSound1');
                             hitSound.currentTime = 0;
                             hitSound.play();
-                        }
-                        if (!starActive && !flyingMode) {
                             gameOver = true;
+                        }
+                        if (enemy.type === 'Type2' && !starActive && !flyingMode && !varChecking) {
+                            platform.enemy = null; // ✅ remove enemy immediately
+                            if (Math.random() < 1) { // 20% chance for VAR
+                                startVARReview(() => {/*in favor: prevent game over*/}, () => {gameOver = true;});
+                            } else {
+                                gameOver = true;
+                            }
                         }
                     }
             });
@@ -607,6 +673,7 @@
 
         updateGame();
         document.getElementById('bgMusic').play();
+        document.getElementById('varOverlay').style.display = 'none'; // Hide overlay on load
 
         function showGameOver() {
             // Reset trophies
