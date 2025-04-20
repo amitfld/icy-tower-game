@@ -112,7 +112,7 @@
         let platforms = [];
         function createPlatform(i) {
             const platformWidth = Math.random() < 0.33
-                ? 120 + Math.random() * 80  // 25% chance → 120–200px
+                ? 120 + Math.random() * 80 // 120 to 200 pixels
                 : 100;
 
             const platform = {
@@ -133,8 +133,11 @@
                 platform.direction = 1;
             }
 
+            // Try assigning each feature separately
+            let hasSpecial = false;
+
             // 5% chance to add enemy
-            if (Math.random() < 0.05) {
+            if (Math.random() < 0.05 && !hasSpecial) {
                 let type;
                 if (totalType1Enemies < totalType2Enemies) {
                     type = 'Type1';
@@ -155,10 +158,11 @@
                     height: 52.5,
                     dir: 1
                 };
+                hasSpecial = true;
             }
 
-            // 8% chance to add a star powerup (European Golden Boot)
-            if (Math.random() < 0.08) {
+            // // 8% chance to add a star powerup (European Golden Boot)
+            if (Math.random() < 0.08 && !hasSpecial) {
                 platform.star = {
                     offsetX: platform.width / 2 - 10,
                     offsetY: -20,
@@ -166,26 +170,19 @@
                     height: 20,
                     collected: false
                 };
-            } else if (Math.random() < 0.04) {
-                // Only add spring if no star
-                platform.spring = {
-                    offsetX: platform.width / 2 - 10,
-                    offsetY: -10,
-                    width: 20,
-                    height: 30,
-                    active: true
-                };
+                hasSpecial = true;
             }
 
             // 4% chance to add a spring
-            if (Math.random() < 0.04) {
+            if (Math.random() < 0.04 && !hasSpecial) {
                 platform.spring = {
                     offsetX: platform.width / 2 - 10,
-                    offsetY: -10,
-                    width: 20,
+                    offsetY: -25,
+                    width: 25,
                     height: 30,
                     active: true // Prevent double jumps from same spring
                 };
+                hasSpecial = true;
             }
 
             return platform;
@@ -298,7 +295,7 @@
             if (player.x <= 0) player.x = 0;
 
             if (player.y >= canvas.height - player.height) {
-                if (hasLeftStartZone) {
+                if (hasLeftStartZone && score > 0) {
                     gameOver = true;
                 }
                 player.y = canvas.height - player.height;
@@ -394,7 +391,7 @@
                     player.y + player.height > enemyY;
 
                     if (enemyCollides) {
-                        if (enemy.type === 'Type1') {
+                        if (enemy.type === 'Type1' && !starActive) {
                             const hitSound = document.getElementById('hitSound1');
                             hitSound.currentTime = 0;
                             hitSound.play();
