@@ -87,6 +87,10 @@
         const footballImg = new Image();
         footballImg.src = "football.png";
 
+        // Load springboard image
+        const springImg = new Image();
+        springImg.src = "springboard.png";
+
         let auraStartTime = 0; // When the aura starts
 
         let gameOver = false;
@@ -154,7 +158,7 @@
             }
 
             // 8% chance to add a star powerup (European Golden Boot)
-            if (Math.random() < 0.5) {
+            if (Math.random() < 0.08) {
                 platform.star = {
                     offsetX: platform.width / 2 - 10,
                     offsetY: -20,
@@ -162,7 +166,26 @@
                     height: 20,
                     collected: false
                 };
+            } else if (Math.random() < 0.04) {
+                // Only add spring if no star
+                platform.spring = {
+                    offsetX: platform.width / 2 - 10,
+                    offsetY: -10,
+                    width: 20,
+                    height: 30,
+                    active: true
+                };
+            }
 
+            // 4% chance to add a spring
+            if (Math.random() < 0.4) {
+                platform.spring = {
+                    offsetX: platform.width / 2 - 10,
+                    offsetY: -10,
+                    width: 20,
+                    height: 30,
+                    active: true // Prevent double jumps from same spring
+                };
             }
 
             return platform;
@@ -290,6 +313,7 @@
                     player.jumping = false;
                     player.velY = 0;
                     player.y = platform.y - player.height;
+
                     if (platform.moving) {
                         player.y += platform.direction * 0.8;
                     }
@@ -449,6 +473,29 @@
                         platform.star = null; // remove the star
                     }
                 }
+
+                // Draw spring
+                if (platform.spring && platform.spring.active) {
+                    const springX = platform.x + platform.spring.offsetX;
+                    const springY = platform.y + platform.spring.offsetY;
+
+                    ctx.drawImage(springImg, springX, springY, platform.spring.width, platform.spring.height);
+
+                    // Spring collision check
+                    const hitsSpring =
+                        player.x < springX + platform.spring.width &&
+                        player.x + player.width > springX &&
+                        player.y + player.height > springY &&
+                        player.y + player.height < springY + platform.spring.height &&
+                        player.velY >= 0;
+
+                    if (hitsSpring) {
+                        player.jumping = true;
+                        player.velY = -18;
+                        platform.spring.active = false;
+                    }
+                }
+
             });
 
             // 🧾 Draw score
