@@ -96,7 +96,7 @@
         // Game settings
         const gravity = 0.5; // gravity pulls the player down
         const friction = 0.8; // friction slows horizontal velocity over time
-        const baseJump = -10; // Base jump velocity - upward force when jumping
+        let baseJump = -10; // Base jump velocity - upward force when jumping
 
         // Star powerup
         let starActive = false;
@@ -134,6 +134,10 @@
         let varSuccess = false;
         let varTimer = null;
         let isGamePaused = false;
+
+        let hasYellowCard = false;
+        let yellowCardStartTime = 0;
+
 
         function startVARReview(onSuccess, onFail) {
             varChecking = true;
@@ -224,7 +228,7 @@
             let hasSpecial = false;
 
             // 5% chance to add enemy
-            if (Math.random() < 0.4 && !hasSpecial) {
+            if (Math.random() < 0.05 && !hasSpecial) {
                 let type;
                 if (totalType1Enemies < totalType2Enemies) {
                     type = 'Type1';
@@ -328,12 +332,6 @@
             if (keys[39]) {if (player.velX < player.speed) {player.velX++;}}         
             if (keys[37]) {if (player.velX > -player.speed) {player.velX--;}}
 
-            // player.velX *= friction;
-            // player.velY += gravity;
-
-            // player.x += player.velX;
-            // player.y += player.velY;
-
             player.velX *= friction;
             player.x += player.velX;
             if (!flyingMode) {
@@ -345,6 +343,12 @@
 
             if (player.y < canvas.height - 150) {
                 hasLeftStartZone = true;
+            }
+
+            if (hasYellowCard && Date.now() - yellowCardStartTime > 5000) {
+                hasYellowCard = false;
+                player.speed = 5; // restore speed
+                baseJump = -10;   // restore jump
             }
 
 
@@ -467,6 +471,12 @@
 
                     // ⏱️ Time spent standing on platform
                     platform.standingTime += 16.66; // ~milliseconds per frame at 60fps
+                    if (platform.standingTime > 3000 && !hasYellowCard) {
+                        hasYellowCard = true;
+                        yellowCardStartTime = Date.now();
+                        player.speed = 2; // reduced speed
+                        baseJump = -8.5;    // reduced jump height
+                    }
                     if (platform.standingTime > 4000) {
                         platform.falling = true;
                     }
@@ -670,6 +680,12 @@
 
             // 🧾 Draw score
             drawScore();
+
+            // 🟡 Draw yellow card
+            if (hasYellowCard) {
+                ctx.fillStyle = 'yellow';
+                ctx.fillRect(10, 50, 20, 30); // Yellow card icon
+            }
 
             // 🏆 Draw trophies
             for (let i = 0; i < collectedTrophies; i++) {
