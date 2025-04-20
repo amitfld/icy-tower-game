@@ -138,6 +138,8 @@
         let hasYellowCard = false;
         let yellowCardStartTime = 0;
 
+        let facingRight = true;
+
 
         function startVARReview(onSuccess, onFail) {
             varChecking = true;
@@ -329,8 +331,16 @@
                 return;
             }
             // Check key inputs
-            if (keys[39]) {if (player.velX < player.speed) {player.velX++;}}         
-            if (keys[37]) {if (player.velX > -player.speed) {player.velX--;}}
+            if (keys[39]) {
+                facingRight = true;   // right arrow
+                if (player.velX < player.speed) {
+                    player.velX++;
+                }}         
+            if (keys[37]) {
+                facingRight = false;  // left arrow
+                if (player.velX > -player.speed) {
+                    player.velX--;
+                }}
 
             player.velX *= friction;
             player.x += player.velX;
@@ -554,7 +564,17 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             // Draw player
-            ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+            ctx.save();
+            if (!facingRight) {
+                ctx.translate(player.x + player.width / 2, player.y + player.height / 2);
+                ctx.scale(-1, 1);
+                ctx.drawImage(playerImg, -player.width / 2, -player.height / 2, player.width, player.height);
+            } else {
+                ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+            }
+            ctx.restore();
+
+
 
             if (starActive) {
                 const elapsed = Math.floor((Date.now() - auraStartTime) / 1000);
@@ -603,8 +623,15 @@
                     if (enemy.type === 'Type1') {
                         ctx.drawImage(enemy1Img, enemyX, platform.y - enemy.height, enemy.width, enemy.height);
                     } else {
-                        ctx.fillStyle = 'purple';
-                        ctx.drawImage(enemy2Img, enemyX, platform.y - enemy.height, enemy.width, enemy.height);
+                        if (enemy.dir === -1) {
+                            ctx.save();
+                            ctx.translate(enemyX + enemy.width, platform.y - enemy.height);
+                            ctx.scale(-1, 1);
+                            ctx.drawImage(enemy2Img, 0, 0, enemy.width, enemy.height);
+                            ctx.restore();
+                        } else {
+                            ctx.drawImage(enemy2Img, enemyX, platform.y - enemy.height, enemy.width, enemy.height);
+                        }
                     }
                 }
 
