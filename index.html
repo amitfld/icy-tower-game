@@ -178,7 +178,7 @@
             }
 
             // 4% chance to add a spring
-            if (Math.random() < 0.4) {
+            if (Math.random() < 0.04) {
                 platform.spring = {
                     offsetX: platform.width / 2 - 10,
                     offsetY: -10,
@@ -263,20 +263,28 @@
 
                         // Reuse the current platform object, but update it with new values
                         platform.x = newPlatform.x;
-                        platform.y = highestY - 100;
+                        platform.y = highestY - 90;
+                        platform.originalY = platform.y;
                         platform.width = newPlatform.width;
                         platform.height = newPlatform.height;
                         platform.standingTime = 0;
                         platform.falling = false;
                         platform.number = newPlatform.number;
-                        platform.enemy = newPlatform.enemy;
-                        // ✅ Properly reset moving platform behavior
-                        if (newPlatform.moving) {
-                            platform.moving = true;
+                        
+                        // Enemies
+                        platform.enemy = newPlatform.enemy || null;
+
+                        // ⭐ Star powerup
+                        platform.star = newPlatform.star || null;
+
+                        // 🔹 Spring
+                        platform.spring = newPlatform.spring || null;
+
+
+                        platform.moving = newPlatform.moving || false;
+                        if (platform.moving) {
                             platform.direction = newPlatform.direction;
-                            platform.originalY = highestY - 100;
-                        } else {
-                            platform.moving = false;
+                            platform.originalY = platform.y;
                         }
                     }
                 });
