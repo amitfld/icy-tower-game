@@ -117,7 +117,7 @@ In this game, you play as **Messi** trying to ascend an endless tower of platfor
 - Football-themed assets and sounds sourced & adapted for educational purposes.
 - Developed as part of the university course: *Idea to Reality (March 2025)*.
 
-⚠️ Note: Some football-themed assets (player avatars, audio clips, images) used in this project are the intellectual property of their respective owners. These assets were included **strictly for educational and non-commercial purposes** as part of a university assignment. If you are the rights holder and have concerns, please contact me.
+>⚠️ Note: Some football-themed assets (player avatars, audio clips, images) used in this project are the intellectual property of their respective owners. These assets were included **strictly for educational and non-commercial purposes** as part of a university assignment. If you are the rights holder and have concerns, please contact me.
 
 
 ---
