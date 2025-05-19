@@ -277,22 +277,35 @@
                     else totalType2Enemies++;
                 }
 
-                platform.enemy = {
-                    type: type,
-                    x: platform.x + 10,
-                    width: 35,
-                    height: 52.5,
-                    dir: 1
-                };
+                const enemyWidth = 35;
+                const enemyHeight = 52.5;
+
+                if (type === 'Type1') {
+                    platform.enemy = {
+                        type: 'Type1',
+                        width: enemyWidth,
+                        height: enemyHeight,
+                        offsetX: Math.random() * (platform.width - enemyWidth) // Random offsetX
+                    };
+                } else { // Type2
+                    platform.enemy = {
+                        type: 'Type2',
+                        x: platform.x + Math.random() * (platform.width - enemyWidth), // Random initial x
+                        width: enemyWidth,
+                        height: enemyHeight,
+                        dir: 1
+                    };
+                }
                 hasSpecial = true;
             }
 
             // // 8% chance to add a star powerup (European Golden Boot)
             if (Math.random() < 0.07 && !hasSpecial) {
+                const starWidth = 20;
                 platform.star = {
-                    offsetX: platform.width / 2 - 10,
+                    offsetX: Math.random() * (platform.width - starWidth), // Random offsetX
                     offsetY: -20,
-                    width: 20,
+                    width: starWidth,
                     height: 20,
                     collected: false
                 };
@@ -301,22 +314,24 @@
 
             // 4% chance to add a spring
             if (Math.random() < 0.08 && !hasSpecial) {
+                const springWidth = 25;
                 platform.spring = {
-                    offsetX: platform.width / 2 - 10,
+                    offsetX: Math.random() * (platform.width - springWidth), // Random offsetX
                     offsetY: -25,
-                    width: 25,
+                    width: springWidth,
                     height: 30,
-                    active: true // Prevent double jumps from same spring
+                    active: true 
                 };
                 hasSpecial = true;
             }
 
             // 8% chance to add a World Cup trophy
             if (Math.random() < 0.1 && !hasSpecial) {
+                const trophyWidth = 25;
                 platform.trophy = {
-                    offsetX: platform.width / 2 - 10,
+                    offsetX: Math.random() * (platform.width - trophyWidth), // Random offsetX
                     offsetY: -25,
-                    width: 25,
+                    width: trophyWidth,
                     height: 30
                 };
                 hasSpecial = true;
@@ -572,9 +587,12 @@
                 if (!enemy || gameOver) return;
 
                 const enemyY = platform.y - enemy.height;
-                const enemyX = (enemy.type === 'Type1')
-                    ? platform.x + (platform.width - enemy.width) / 2
-                    : enemy.x;
+                let enemyX; // Declare enemyX here
+                if (enemy.type === 'Type1') {
+                    enemyX = platform.x + enemy.offsetX; // Use offsetX for Type1
+                } else { // Type2
+                    enemyX = enemy.x; // Type2 uses its own x coordinate
+                }
 
                 const enemyCollides =
                     player.x < enemyX + enemy.width &&
@@ -649,8 +667,7 @@
                     // Determine horizontal position
                     let enemyX;
                     if (enemy.type === 'Type1') {
-                        // Always center on platform
-                        enemyX = platform.x + (platform.width - enemy.width) / 2;
+                        enemyX = platform.x + enemy.offsetX; // Use offsetX for Type1
                     } else {
                         // Type2: ensure it stays within platform bounds
                         if (enemy.x < platform.x) enemy.x = platform.x;
@@ -662,12 +679,13 @@
                     // Draw enemies
                     if (enemy.type === 'Type1') {
                         ctx.drawImage(enemy1Img, enemyX, platform.y - enemy.height, enemy.width, enemy.height);
-                    } else {
+                    } else { // Type2
                         if (enemy.dir === -1) {
                             ctx.save();
+                            // Correct translation for flipped Type2 enemy
                             ctx.translate(enemyX + enemy.width, platform.y - enemy.height);
                             ctx.scale(-1, 1);
-                            ctx.drawImage(enemy2Img, 0, 0, enemy.width, enemy.height);
+                            ctx.drawImage(enemy2Img, 0, 0, enemy.width, enemy.height); // Draw at (0,0) after translate and scale
                             ctx.restore();
                         } else {
                             ctx.drawImage(enemy2Img, enemyX, platform.y - enemy.height, enemy.width, enemy.height);
@@ -712,7 +730,7 @@
                     if (hitsSpring) {
                         player.jumping = true;
                         player.velY = -25;
-                        platform.spring.active = false;
+                        // platform.spring.active = false;
                     }
                 }
 
