@@ -650,8 +650,12 @@
 
             // Draw platforms
             platforms.forEach(platform => {
-                ctx.fillStyle = 'black';
-                ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+                // Draw left half (blue)
+                ctx.fillStyle = '#004D98';
+                ctx.fillRect(platform.x, platform.y, platform.width / 2, platform.height);
+                // Draw right half (red)
+                ctx.fillStyle = '#A50044';
+                ctx.fillRect(platform.x + platform.width / 2, platform.y, platform.width / 2, platform.height);
 
                 if (platform.number % 10 === 0) {
                     ctx.fillStyle = 'white';
