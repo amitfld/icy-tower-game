@@ -69,7 +69,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.75);
+            background: rgba(0, 0, 0, 0.85);
             display: none;
             color: white;
             font-family: Arial, sans-serif;
@@ -78,22 +78,62 @@
             flex-direction: column;
             z-index: 10;
         ">
-            <h1 style="margin-bottom: 10px; font-size: 36px;">GAME OVER</h1>
-            <button onclick="restartGame()" style="
-                padding: 10px 20px;
-                font-size: 18px;
-                margin-bottom: 20px;
-                background-color: #272121;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                transition: background 0.3s;
-            " onmouseover="this.style.background='#eee'" onmouseout="this.style.background='#fff'">
-                Play Again
-            </button>
-            <h2 style="margin-bottom: 10px;">Top Scores</h2>
-            <ol id="leaderboard" style="padding: 0; list-style: none; font-size: 16px;"></ol>
+            <div style="
+                background: rgba(30, 30, 60, 0.95);
+                border-radius: 18px;
+                box-shadow: 0 8px 32px 0 rgba(0,0,0,0.37);
+                padding: 40px 32px 32px 32px;
+                min-width: 340px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                border: 2px solid #A50044;
+                position: relative;
+                animation: popIn 0.7s cubic-bezier(.68,-0.55,.27,1.55);
+            ">
+                <h1 style="margin-bottom: 10px; font-size: 44px; letter-spacing: 2px; color: #FFD700; text-shadow: 2px 2px 8px #A50044;">GAME OVER</h1>
+                <h2 id="currentScoreDisplay" style="margin-bottom: 18px; color: #00FFB0; font-size: 26px; text-shadow: 1px 1px 8px #004D98, 0 0 4px #000; letter-spacing: 1px;"></h2>
+                <button onclick="restartGame()" style="
+                    padding: 12px 36px;
+                    font-size: 22px;
+                    margin-bottom: 28px;
+                    background: linear-gradient(90deg, #004D98 0%, #A50044 100%);
+                    color: #fff;
+                    border: none;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+                    transition: background 0.3s, transform 0.2s, box-shadow 0.2s;
+                    outline: none;
+                " onmouseover="this.style.background='linear-gradient(90deg, #A50044 0%, #004D98 100%)'; this.style.transform='scale(1.07)'; this.style.boxShadow='0 4px 16px #A5004477';" onmouseout="this.style.background='linear-gradient(90deg, #004D98 0%, #A50044 100%)'; this.style.transform='scale(1)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.18)';">
+                    ▶️ Play Again
+                </button>
+                <h2 style="margin-bottom: 10px; color: #FFD700; text-shadow: 1px 1px 6px #004D98;">Top Scores</h2>
+                <ol id="leaderboard" style="padding: 0; list-style: none; font-size: 18px; width: 100%; text-align: left; color: #fff;">
+                </ol>
+            </div>
         </div>
+        <style>
+        @keyframes popIn {
+          0% { transform: scale(0.7); opacity: 0; }
+          80% { transform: scale(1.08); opacity: 1; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        #gameOverScreen button:active {
+          transform: scale(0.97);
+        }
+        #gameOverScreen ol li {
+          padding: 2px 0 2px 0;
+          border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        #gameOverScreen ol li:first-child {
+          color: #FFD700;
+          font-weight: bold;
+          font-size: 20px;
+          text-shadow: 1px 1px 6px #A50044;
+        }
+        </style>
     </div>
     
     <script>
@@ -823,6 +863,12 @@
             scores.sort((a, b) => b - a); // Descending order
             scores = scores.slice(0, 10); // Keep top 10
             localStorage.setItem('icyTowerScores', JSON.stringify(scores));
+
+            // Display current score
+            const currentScoreDisplay = document.getElementById('currentScoreDisplay');
+            if (currentScoreDisplay) {
+                currentScoreDisplay.textContent = `Your Score: ${score}`;
+            }
 
             // Display leaderboard
             const leaderboard = document.getElementById('leaderboard');
